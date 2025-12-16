@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Soporte Técnico{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+        .sidebar {
+            width: 230px;
+            min-height: 100vh;
+            background: #212529;
+        }
+        .sidebar a {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 12px 20px;
+            display: block;
+        }
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #343a40;
+            color: #fff;
+        }
+        .content {
+            padding: 25px;
+        }
+        .badge {
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+<div class="d-flex">
+
+    <!-- Sidebar -->
+<!-- Barra lateral -->
+    <aside class="barra-lateral">
+        <h5 class="text-white text-center py-3 border-bottom">Soporte</h5>
+
+        <a href="{% url 'soporte:panel_soporte' %}"
+        class="{% block nav_panel_active %}{% endblock %}">
+            <i class="bi bi-ticket-detailed"></i> Tickets
+        </a>
+
+        <!-- ✅ SALIR CORRECTO -->
+        <a href="{% url 'logout' %}">
+            <i class="bi bi-box-arrow-right"></i> Salir
+        </a>
+    </aside>
+
+
+    <!-- Content -->
+    <main class="flex-grow-1 content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
