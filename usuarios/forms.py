@@ -1,23 +1,37 @@
-# usuarios/forms.py (CONTENIDO COMPLETO)
+# usuarios/forms.py
 from allauth.socialaccount.forms import SignupForm
 from django import forms
 from django.core.exceptions import ValidationError
+from django.templatetags.static import static
 from .models import (
-    Comerciante, Post, Comentario, 
-    RELACION_NEGOCIO_CHOICES, TIPO_NEGOCIO_CHOICES, 
+    Comerciante, Post, Comentario,
+    RELACION_NEGOCIO_CHOICES, TIPO_NEGOCIO_CHOICES,
     CATEGORIA_POST_CHOICES, INTERESTS_CHOICES
-) 
-# Opciones de comuna
-COMUNA_CHOICES = [
-    ('', 'Selecciona tu comuna'),
-    ('ARICA', 'Arica'),
-    ('SANTIAGO', 'Santiago'),
-    ('PROVIDENCIA', 'Providencia'),
-    ('LA_SERENA', 'La Serena'),
-    ('VALPARAISO', 'Valparaíso'),
-    ('OTRO_COMUNA', '...'),
+)
+
+# Opciones de región
+REGIONES_CHILE = [
+    ('', 'Selecciona tu región'),
+    ('RM', 'Región Metropolitana'),
+    ('I', 'Región de Tarapacá'),
+    ('II', 'Región de Antofagasta'),
+    ('III', 'Región de Atacama'),
+    ('IV', 'Región de Coquimbo'),
+    ('V', 'Región de Valparaíso'),
+    ('VI', 'Región del Libertador General Bernardo O’Higgins'),
+    ('VII', 'Región del Maule'),
+    ('VIII', 'Región del Biobío'),
+    ('IX', 'Región de La Araucanía'),
+    ('X', 'Región de Los Lagos'),
+    ('XI', 'Región Aysén del General Carlos Ibáñez del Campo'),
+    ('XII', 'Región de Magallanes y de la Antártica Chilena'),
+    ('XIII', 'Región de Ñuble'),
+    ('XIV', 'Región de Los Ríos'),
 ]
 
+# -------------------------------------------
+# FORMULARIO DE REGISTRO DE COMERCIANTE
+# -------------------------------------------
 class RegistroComercianteForm(forms.ModelForm):
     password = forms.CharField(
         label='Contraseña',
@@ -37,8 +51,7 @@ class RegistroComercianteForm(forms.ModelForm):
         }),
         max_length=255
     )
-    
-    # REDEFINIR ESTOS CAMPOS EXPLÍCITAMENTE
+
     relacion_negocio = forms.ChoiceField(
         choices=[('', 'Selecciona una opción')] + list(RELACION_NEGOCIO_CHOICES),
         label='Relación con el negocio',
@@ -48,7 +61,7 @@ class RegistroComercianteForm(forms.ModelForm):
             'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d171b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#cfdfe7] dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:border-primary h-12 p-[15px] text-base font-normal leading-normal appearance-none cursor-pointer'
         })
     )
-    
+
     tipo_negocio = forms.ChoiceField(
         choices=[('', 'Selecciona un tipo')] + list(TIPO_NEGOCIO_CHOICES),
         label='Tipo de negocio',
@@ -58,13 +71,14 @@ class RegistroComercianteForm(forms.ModelForm):
             'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d171b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#cfdfe7] dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:border-primary h-12 p-[15px] text-base font-normal leading-normal appearance-none cursor-pointer'
         })
     )
-    
-    comuna_select = forms.ChoiceField(
-        choices=COMUNA_CHOICES,
-        label='Comuna',
+
+
+    region_select = forms.ChoiceField(
+        choices=REGIONES_CHILE,
+        label='Región',
         required=True,
         widget=forms.Select(attrs={
-            'id': 'id_comuna_select',
+            'id': 'id_region_select',
             'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d171b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#cfdfe7] dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:border-primary h-12 p-[15px] text-base font-normal leading-normal appearance-none cursor-pointer'
         })
     )
@@ -73,8 +87,6 @@ class RegistroComercianteForm(forms.ModelForm):
         model = Comerciante
         fields = (
             'nombre_apellido', 'email', 'whatsapp',
-            # ❌ REMOVIDOS: 'relacion_negocio', 'tipo_negocio'
-            # Porque los redefinimos arriba como ChoiceField
         )
         widgets = {
             'nombre_apellido': forms.TextInput(attrs={
@@ -92,7 +104,6 @@ class RegistroComercianteForm(forms.ModelForm):
                 'id': 'whatsapp',
                 'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none'
             }),
-            # ❌ REMOVIDOS: widgets de relacion_negocio y tipo_negocio
         }
 
     def clean_email(self):
@@ -102,20 +113,14 @@ class RegistroComercianteForm(forms.ModelForm):
         return email.lower()
 
     def clean_whatsapp(self):
-     whatsapp = self.cleaned_data.get('whatsapp')
-    
-     # ✅ Verificar primero si whatsapp existe
-     if not whatsapp:
-        raise ValidationError('El número de WhatsApp es obligatorio.')
-    
-    # Ahora sí podemos hacer las validaciones
-     if not whatsapp.startswith('+569'):
-        raise ValidationError('El WhatsApp debe comenzar con +569 seguido de 8 dígitos.')
-    
-     if len(whatsapp) != 12:
-        raise ValidationError('El formato debe ser +569XXXXXXXX (12 caracteres).')
-    
-     return whatsapp
+        whatsapp = self.cleaned_data.get('whatsapp')
+        if not whatsapp:
+            raise ValidationError('El número de WhatsApp es obligatorio.')
+        if not whatsapp.startswith('+569'):
+            raise ValidationError('El WhatsApp debe comenzar con +569 seguido de 8 dígitos.')
+        if len(whatsapp) != 12:
+            raise ValidationError('El formato debe ser +569XXXXXXXX (12 caracteres).')
+        return whatsapp
 
     def clean(self):
         cleaned_data = super().clean()
@@ -133,11 +138,16 @@ class RegistroComercianteForm(forms.ModelForm):
         if comuna:
             cleaned_data['comuna'] = comuna
 
+        # Mapear region_select a region
+        region = cleaned_data.get('region_select')
+        if region:
+            cleaned_data['region'] = region
+
         return cleaned_data
 
-
-
-
+# -------------------------------------------
+# FORMULARIO DE LOGIN
+# -------------------------------------------
 class LoginForm(forms.Form):
     email = forms.EmailField(
         label='Correo electrónico',
@@ -154,19 +164,18 @@ class LoginForm(forms.Form):
         })
     )
 
-# -------------------------------------------------------------------------------------
+# -------------------------------------------
+# FORMULARIO PARA POSTS
+# -------------------------------------------
 class PostForm(forms.ModelForm):
-    # Campo para subida de archivo desde PC (NUEVA FUNCIONALIDAD)
     uploaded_file = forms.FileField(
         required=False,
         label='Subir Archivo (Imagen/Documento)',
         widget=forms.ClearableFileInput(attrs={
-            # Estilos de Tailwind para el campo de archivo
             'class': 'form-input-file block w-full text-sm text-text-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-primary dark:file:text-white',
         })
     )
 
-    # Campo para link/URL externo (NUEVA FUNCIONALIDAD)
     url_link = forms.URLField(
         required=False,
         label='Link URL',
@@ -175,8 +184,7 @@ class PostForm(forms.ModelForm):
             'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-light dark:text-text-dark focus:outline-0 focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:border-primary h-12 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark p-[10px] text-base font-normal leading-normal'
         })
     )
-    
-    # Campo para etiquetas (se mantiene)
+
     etiquetas_input = forms.CharField(
         required=False,
         label='Etiquetas',
@@ -190,7 +198,6 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ('titulo', 'contenido', 'categoria') 
-        
         widgets = {
             'titulo': forms.TextInput(attrs={
                 'placeholder': 'Titulo',
@@ -208,55 +215,57 @@ class PostForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        
         url_link = self.cleaned_data.get('url_link')
         uploaded_file = self.cleaned_data.get('uploaded_file')
         etiquetas_input = self.cleaned_data.pop('etiquetas_input', None)
 
         if uploaded_file and url_link:
             self.add_error(None, "Solo puedes subir un archivo O proporcionar un link URL, no ambos.")
-            
         if url_link:
             cleaned_data['imagen_url'] = url_link
-        
         if etiquetas_input:
             cleaned_data['etiquetas'] = etiquetas_input
-        
         return cleaned_data
-    
+
+# -------------------------------------------
+# FORMULARIOS VARIOS
+# -------------------------------------------
 class ProfilePhotoForm(forms.ModelForm):
-    """Formulario para actualizar solo la foto de perfil."""
     class Meta:
         model = Comerciante
         fields = ['foto_perfil']
-        
+
 class BusinessDataForm(forms.ModelForm):
-    """Formulario para actualizar los datos del negocio (Relación, Tipo, Comuna, Nombre)."""
     class Meta:
         model = Comerciante
-        fields = ['relacion_negocio', 'tipo_negocio', 'comuna', 'nombre_negocio']
-        
+        fields = ['relacion_negocio', 'tipo_negocio', 'region', 'nombre_negocio']
         widgets = {
-            'relacion_negocio': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white'}),
-            'tipo_negocio': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white'}),
-            'comuna': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white', 'placeholder': 'Ej: Estación Central'}),
-            'nombre_negocio': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white', 'placeholder': 'Ej: Minimarket El Sol'}),
+            'relacion_negocio': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white'
+            }),
+            'tipo_negocio': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white'
+            }),
+            'region': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white'
+            }),
+            'nombre_negocio': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white',
+                'placeholder': 'Ej: Minimarket El Sol'
+            }),
         }
 
+
 class ContactInfoForm(forms.ModelForm):
-    """Formulario para actualizar el email y WhatsApp."""
     class Meta:
         model = Comerciante
         fields = ['email', 'whatsapp']
-        
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white', 'placeholder': 'tu@correo.cl'}),
             'whatsapp': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white', 'placeholder': '+569XXXXXXXX'}),
         }
 
 class InterestsForm(forms.Form):
-    """Formulario para seleccionar múltiples intereses de la lista definida."""
-    
     intereses = forms.MultipleChoiceField(
         choices=INTERESTS_CHOICES,
         widget=forms.CheckboxSelectMultiple,
@@ -264,10 +273,7 @@ class InterestsForm(forms.Form):
         label="Selecciona tus intereses"
     )
 
-# --- FORMULARIO DE COMENTARIOS RESTAURADO ---
-
 class ComentarioForm(forms.ModelForm):
-    """Formulario para añadir un nuevo comentario."""
     class Meta:
         model = Comentario
         fields = ['contenido']
@@ -278,11 +284,11 @@ class ComentarioForm(forms.ModelForm):
                 'class': 'w-full resize-none rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-primary focus:border-primary p-[10px] text-base'
             }),
         }
-        labels = {
-            'contenido': 'Tu Comentario'
-        }
+        labels = {'contenido': 'Tu Comentario'}
 
-
+# -------------------------------------------
+# FORMULARIO DE REGISTRO SOCIAL
+# -------------------------------------------
 class SocialSignupForm(SignupForm):
     nombre_apellido = forms.CharField(
         max_length=100,
@@ -292,7 +298,7 @@ class SocialSignupForm(SignupForm):
             'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none'
         })
     )
-    
+
     whatsapp = forms.CharField(
         max_length=12,
         required=True,
@@ -301,57 +307,28 @@ class SocialSignupForm(SignupForm):
             'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none'
         })
     )
-    
+
     relacion_negocio = forms.ChoiceField(
-        choices=[
-            ('', 'Selecciona una opción'),
-            ('DUENO', 'Dueño/a'),
-            ('SOCIO', 'Socio/a'),
-            ('EMPLEADO', 'Empleado/a'),
-            ('FAMILIAR', 'Familiar'),
-        ],
+        choices=[('', 'Selecciona una opción')] + list(RELACION_NEGOCIO_CHOICES),
         required=True,
-        widget=forms.Select(attrs={
-            'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none appearance-none bg-white'
-        })
+        widget=forms.Select(attrs={'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none'})
     )
-    
+
     tipo_negocio = forms.ChoiceField(
-        choices=[
-            ('', 'Selecciona un tipo'),
-            ('ALMACEN', 'Almacén'),
-            ('MINIMARKET', 'Minimarket'),
-            ('KIOSCO', 'Kiosco'),
-            ('BOTILLERIA', 'Botillería'),
-            ('OTRO', 'Otro'),
-        ],
+        choices=[('', 'Selecciona un tipo')] + list(TIPO_NEGOCIO_CHOICES),
         required=True,
-        widget=forms.Select(attrs={
-            'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none appearance-none bg-white'
-        })
+        widget=forms.Select(attrs={'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none'})
     )
-    
-    comuna_select = forms.ChoiceField(
-        choices=[
-            ('', 'Selecciona tu comuna'),
-            ('Santiago', 'Santiago'),
-            ('Las Condes', 'Las Condes'),
-            ('Providencia', 'Providencia'),
-            ('Maipú', 'Maipú'),
-            ('La Florida', 'La Florida'),
-            ('Puente Alto', 'Puente Alto'),
-            # Agregar más comunas
-        ],
+
+
+    region_select = forms.ChoiceField(
+        choices=REGIONES_CHILE,
         required=True,
-        widget=forms.Select(attrs={
-            'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none appearance-none bg-white'
-        })
+        widget=forms.Select(attrs={'class': 'w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none'})
     )
 
     def save(self, request):
         user = super().save(request)
-        
-        # Crear o actualizar el comerciante
         comerciante, created = Comerciante.objects.get_or_create(
             email=user.email,
             defaults={
@@ -359,8 +336,7 @@ class SocialSignupForm(SignupForm):
                 'whatsapp': self.cleaned_data['whatsapp'],
                 'relacion_negocio': self.cleaned_data['relacion_negocio'],
                 'tipo_negocio': self.cleaned_data['tipo_negocio'],
-                'comuna': self.cleaned_data['comuna_select'],
+                'region': self.cleaned_data['region_select'],
             }
         )
-        
         return user

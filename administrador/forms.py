@@ -26,7 +26,6 @@ class ComercianteAdminForm(forms.ModelForm):
             'whatsapp',
             'relacion_negocio',
             'tipo_negocio',
-            'comuna',
             'nombre_negocio',
             'rol',
             'es_proveedor',      # 👈 importante para el flujo proveedor

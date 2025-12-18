@@ -20,16 +20,16 @@ class ComercianteAdmin(admin.ModelAdmin):
         'nombre_apellido',
         'email',
         'rol',
-        'comuna',
         'nombre_negocio',
         'es_proveedor',
         'fecha_registro',
         'ultima_conexion',
+        'region',
     )
 
     list_filter = (
         'rol',
-        'comuna',
+        'region',
         'es_proveedor',
         'relacion_negocio',
         'tipo_negocio',
@@ -39,7 +39,7 @@ class ComercianteAdmin(admin.ModelAdmin):
         'nombre_apellido',
         'email',
         'nombre_negocio',
-        'comuna',
+        'whatsapp',
     )
 
     readonly_fields = (
@@ -64,7 +64,7 @@ class ComercianteAdmin(admin.ModelAdmin):
         ('Negocio', {
             'fields': (
                 'nombre_negocio',
-                'comuna',
+                'region',
                 'relacion_negocio',
                 'tipo_negocio',
                 'es_proveedor',
@@ -89,7 +89,7 @@ class ComercianteAdmin(admin.ModelAdmin):
         🔐 Asegura que la contraseña SIEMPRE quede hasheada
         (admin crea usuarios funcionales para login)
         """
-        if obj.password_hash and not obj.password_hash.startswith('pbkdf2_'):
+        if obj.password_hash and not str(obj.password_hash).startswith('pbkdf2_'):
             obj.password_hash = make_password(obj.password_hash)
 
         super().save_model(request, obj, form, change)
@@ -116,6 +116,7 @@ class PostAdmin(admin.ModelAdmin):
         'titulo',
         'contenido',
         'comerciante__nombre_apellido',
+        'comerciante__email',
     )
 
 
@@ -137,6 +138,7 @@ class ComentarioAdmin(admin.ModelAdmin):
     search_fields = (
         'contenido',
         'comerciante__nombre_apellido',
+        'comerciante__email',
         'post__titulo',
     )
 
@@ -215,6 +217,6 @@ class PropuestaAdmin(admin.ModelAdmin):
 
     search_fields = (
         'titulo',
-        'proveedor__nombre',
+        'proveedor__nombre_empresa',
         'rubros_ofertados',
     )
