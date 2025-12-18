@@ -254,7 +254,7 @@ class ProductoServicioForm(forms.ModelForm):
     """Formulario para productos/servicios"""
     class Meta:
         model = ProductoServicio
-        fields = ['nombre', 'descripcion', 'precio_referencia', 'imagen', 'destacado', 'activo', 'categoria']
+        fields = ['nombre', 'descripcion', 'precio_referencia', 'imagen', 'destacado', 'activo']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -262,7 +262,6 @@ class ProductoServicioForm(forms.ModelForm):
             'imagen': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'destacado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'categoria': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
