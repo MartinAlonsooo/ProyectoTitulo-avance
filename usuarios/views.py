@@ -1,5 +1,7 @@
 from datetime import timedelta
 import re 
+from django.contrib.auth.models import User
+from allauth.account.models import EmailAddress
 
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
@@ -303,113 +305,163 @@ def index(request):
 
 current_logged_in_user = None
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.models import User
+from django.db import IntegrityError
+from django.utils import timezone
+
+from allauth.account.models import EmailAddress
+
+from .forms import RegistroComercianteForm
+from .models import Comerciante
+
+
 def registro_view(request):
-    """Vista unificada que maneja login y registro"""
-    
+    """
+    Vista unificada que maneja:
+    - Login manual
+    - Registro con verificación obligatoria de correo electrónico
+    """
+
     if request.method == 'POST':
-        # Detectar qué formulario se envió
         form_type = request.POST.get('form_type', 'registro')
-        
+
         # =====================================================
-        # MANEJAR LOGIN (solo email y password)
+        # LOGIN
         # =====================================================
-        if form_type == 'login' or 'login_submit' in request.POST:
+        if form_type == 'login':
             email = request.POST.get('email', '').strip().lower()
             password = request.POST.get('password', '')
-            
+
             if not email or not password:
                 messages.error(request, 'Por favor, completa todos los campos.')
-                form = RegistroComercianteForm()
-                return render(request, 'usuarios/cuenta.html', {'form': form})
-            
+                return redirect('registro')
+
             try:
                 comerciante = Comerciante.objects.get(email=email)
-                
-                if check_password(password, comerciante.password_hash):
-                    # Actualizar última conexión
-                    comerciante.ultima_conexion = timezone.now()
-                    comerciante.save(update_fields=['ultima_conexion'])
-                    
-                    # ✅ GUARDAR EN SESIÓN DE DJANGO (no variable global)
-                    request.session['comerciante_id'] = comerciante.id
-                    request.session['comerciante_email'] = comerciante.email
-                    request.session['comerciante_rol'] = comerciante.rol
-                    request.session['comerciante_nombre'] = comerciante.nombre_apellido
-                    
-                    messages.success(request, f'¡Bienvenido {comerciante.nombre_apellido}!')
-                    
-                    # Redirecciones según rol
-                    if comerciante.rol == 'ADMIN':
-                        return redirect('panel_admin')
-                    if comerciante.rol == 'TECNICO':
-                        return redirect('soporte:panel_soporte')
-                    if getattr(comerciante, 'es_proveedor', False):
-                        return redirect('proveedor_dashboard')
-                    
-                    return redirect('plataforma_comerciante')
-                else:
-                    messages.error(request, 'Contraseña incorrecta. Intenta nuevamente.')
-                    
+
+                if not check_password(password, comerciante.password_hash):
+                    messages.error(request, 'Contraseña incorrecta.')
+                    return redirect('registro')
+
+                # 🔐 Verificar que el email esté confirmado
+                try:
+                    user = User.objects.get(email=email)
+                    email_verificado = EmailAddress.objects.filter(
+                        user=user,
+                        verified=True
+                    ).exists()
+
+                    if not email_verificado:
+                        messages.error(
+                            request,
+                            'Debes confirmar tu correo electrónico antes de iniciar sesión.'
+                        )
+                        return redirect('registro')
+
+                except User.DoesNotExist:
+                    messages.error(request, 'Error de autenticación.')
+                    return redirect('registro')
+
+                # ✅ Login exitoso
+                comerciante.ultima_conexion = timezone.now()
+                comerciante.save(update_fields=['ultima_conexion'])
+
+                # Guardar sesión
+                request.session['comerciante_id'] = comerciante.id
+                request.session['comerciante_email'] = comerciante.email
+                request.session['comerciante_rol'] = comerciante.rol
+                request.session['comerciante_nombre'] = comerciante.nombre_apellido
+
+                messages.success(
+                    request,
+                    f'¡Bienvenido/a {comerciante.nombre_apellido}!'
+                )
+
+                # Redirecciones por rol
+                if comerciante.rol == 'ADMIN':
+                    return redirect('panel_admin')
+                if comerciante.rol == 'TECNICO':
+                    return redirect('soporte:panel_soporte')
+                if getattr(comerciante, 'es_proveedor', False):
+                    return redirect('proveedor_dashboard')
+
+                return redirect('plataforma_comerciante')
+
             except Comerciante.DoesNotExist:
-                messages.error(request, 'Este correo no está registrado. Por favor, regístrate primero.')
-            
-            # Volver a mostrar el formulario
-            form = RegistroComercianteForm()
-            return render(request, 'usuarios/cuenta.html', {'form': form})
-        
+                messages.error(
+                    request,
+                    'Este correo no está registrado. Por favor, regístrate primero.'
+                )
+                return redirect('registro')
+
         # =====================================================
-        # MANEJAR REGISTRO (todos los campos requeridos)
+        # REGISTRO
         # =====================================================
         else:
             form = RegistroComercianteForm(request.POST)
-            
+
             if form.is_valid():
                 try:
-                    # Extraer contraseña antes de guardar
+                    email = form.cleaned_data['email']
                     raw_password = form.cleaned_data.pop('password')
-                    hashed_password = make_password(raw_password)
 
-                    # Crear comerciante sin commit
+                    # 1️⃣ Crear User base de Django
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=raw_password,
+                        is_active=True
+                    )
+
+                    # 2️⃣ Crear EmailAddress (NO verificado)
+                    email_address = EmailAddress.objects.create(
+                        user=user,
+                        email=email,
+                        primary=True,
+                        verified=False
+                    )
+
+                    # 3️⃣ Enviar correo de confirmación (FORMA CORRECTA)
+                    email_address.send_confirmation(request)
+
+                    # 4️⃣ Crear Comerciante (tu sistema)
                     nuevo_comerciante = form.save(commit=False)
-                    nuevo_comerciante.password_hash = hashed_password
-                    
-                    # ✅ Asignar campos redefinidos
-                    nuevo_comerciante.relacion_negocio = form.cleaned_data.get('relacion_negocio')
-                    nuevo_comerciante.tipo_negocio = form.cleaned_data.get('tipo_negocio')
-
-                    # Mapear comuna_select a comuna
-                    comuna_final = form.cleaned_data.get('comuna')
-                    if comuna_final:
-                        nuevo_comerciante.comuna = comuna_final
-
-                    # Guardar en base de datos
+                    nuevo_comerciante.password_hash = make_password(raw_password)
                     nuevo_comerciante.save()
-                    
-                    messages.success(request, '¡Registro exitoso! Ya puedes iniciar sesión.')
+
+                    messages.success(
+                        request,
+                        'Registro exitoso. Revisa tu correo y confirma tu email antes de iniciar sesión.'
+                    )
                     return redirect('registro')
-                    
+
                 except IntegrityError:
                     messages.error(
                         request,
-                        'Este correo electrónico ya está registrado. '
-                        'Por favor, inicia sesión o usa otro correo.'
+                        'Este correo electrónico ya está registrado.'
                     )
                 except Exception as e:
-                    messages.error(request, f'Ocurrió un error inesperado al guardar: {e}')
+                    messages.error(
+                        request,
+                        f'Ocurrió un error inesperado: {e}'
+                    )
             else:
-                # ✅ Mostrar errores específicos del formulario
-                messages.error(request, 'Por favor, corrige los errores del formulario.')
-            
-            # ✅ Devolver el form con errores para que se muestren
+                messages.error(
+                    request,
+                    'Por favor, corrige los errores del formulario.'
+                )
+
             return render(request, 'usuarios/cuenta.html', {'form': form})
-    
-    # ✅ CASO GET: cuando alguien visita la página por primera vez
-    else:
-        form = RegistroComercianteForm()
-    
-    return render(request, 'usuarios/cuenta.html', {'form': form})
 
-
+    # =====================================================
+    # GET
+    # =====================================================
+    return render(request, 'usuarios/cuenta.html', {
+        'form': RegistroComercianteForm()
+    })
 
 def logout_view(request):
     comerciante = get_current_user(request)

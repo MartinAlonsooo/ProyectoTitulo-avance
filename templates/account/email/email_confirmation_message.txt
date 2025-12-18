@@ -1,0 +1,13 @@
+Hola,
+
+Gracias por registrarte en Club Almacén 🛒
+
+Para activar tu cuenta y comenzar a usar la plataforma,
+confirma tu correo haciendo clic en el siguiente enlace:
+
+{{ activate_url }}
+
+Si no realizaste este registro, simplemente ignora este mensaje.
+
+—
+Equipo Club Almacén
