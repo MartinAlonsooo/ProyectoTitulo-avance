@@ -155,13 +155,16 @@
                         </div>
 
                         <div class="bg-white dark:bg-white p-6 rounded-xl shadow-lg">
-                            <button onclick="confirmLogout()" 
-                                    class="w-full inline-flex items-center justify-center p-3 text-sm font-bold rounded-lg 
-                                           bg-gradient-to-r from-red-500 to-red-600 text-white 
-                                           hover:from-red-600 hover:to-red-700 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg">
-                                <span class="material-symbols-outlined text-xl mr-2">logout</span>
-                                Cerrar Sesión
-                            </button>
+                            <form method="POST" action="{% url 'logout' %}" class="w-full">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="w-full inline-flex items-center justify-center p-3 text-sm font-bold rounded-lg 
+                                            bg-gradient-to-r from-red-500 to-red-600 text-white 
+                                            hover:from-red-600 hover:to-red-700 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg">
+                                    <span class="material-symbols-outlined text-xl mr-2">logout</span>
+                                    Cerrar Sesión
+                                </button>
+                            </form>
                         </div>
                         </div>
                 </div>

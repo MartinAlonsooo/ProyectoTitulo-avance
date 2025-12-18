@@ -796,9 +796,16 @@ def proveedor_dashboard_view(request):
 
     return render(request, 'proveedores/perfil.html', context)
 
-    # ✅ CORRECTO
+   
 def directorio_view(request):
     """Directorio de proveedores para comerciantes"""
+    
+    # Obtener comerciante actual
+    comerciante = get_current_user(request)
+    
+    if not comerciante:
+        messages.warning(request, 'Por favor, inicia sesión para acceder al directorio.')
+        return redirect('registro')
     
     # Obtener filtros
     busqueda = request.GET.get('q', '')
@@ -841,10 +848,15 @@ def directorio_view(request):
     # Datos para filtros
     categorias = CategoriaProveedor.objects.filter(activo=True)
     
+    # ✅ Usar REGIONES_CHOICES directamente (lista de tuplas)
+    regiones = REGIONES_CHOICES
+    
     context = {
         'page_obj': page_obj,
         'categorias': categorias,
-        'regiones': REGIONES_CHOICES,
+        'comerciante': comerciante,
+        'rol_usuario': ROLES.get(comerciante.rol, 'Comerciante'),
+        'regiones': regiones,
         'busqueda': busqueda,
         'categoria_seleccionada': categoria_id,
         'region_seleccionada': region,
@@ -908,7 +920,14 @@ def crear_ticket_soporte(request):
     contexto = {
         'form': form,
         'comerciante': comerciante,
+        'rol_usuario': ROLES.get(comerciante.rol, 'Comerciante'),  # ✅ AGREGADO
     }
     return render(request, 'usuarios/soporte/crear_ticket.html', contexto)
+
+
+
+def contactos_clubalmacen(request):
+    """Vista simple para mostrar información de contacto"""
+    return render(request, 'usuarios/contacto.html')
 
 

@@ -25,9 +25,7 @@ urlpatterns = [
     path('noticias/', views.noticias_view, name='noticias'),
     path('redes-sociales/', views.redes_sociales_view, name='redes_sociales'), 
 
-
-    # DIRECTORIO DE PROVEEDORES
-    # 👇 ESTA ES LA RUTA QUE FALTABA
-    # NO
+    # Contactos Club Almacen
+    path('contactos-clubalmacen/', views.contactos_clubalmacen, name='contactos_clubalmacen'),
 
 ]

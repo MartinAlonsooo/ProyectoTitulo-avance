@@ -49,7 +49,7 @@
     }
 
     .btn-add {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2752fcff 0%, #ff9c31ff 100%);
         color: white;
         padding: 0.875rem 1.75rem;
         border-radius: 8px;
@@ -468,12 +468,9 @@
                         <a href="{% url 'proveedores:editar_promocion' promocion.id %}" class="btn-action btn-edit">
                             <span>✏️</span> Editar
                         </a>
-                        <form method="post" action="{% url 'proveedores:eliminar_promocion' promocion.id %}" style="flex: 1;" onsubmit="return confirm('¿Estás seguro de eliminar esta promoción?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-action btn-delete" style="width: 100%;">
-                                <span>🗑️</span> Eliminar
-                            </button>
-                        </form>
+                        <a href="{% url 'proveedores:eliminar_promocion' promocion.id %}" class="btn-action btn-delete" style="width: 100%; text-align: center; text-decoration: none;">
+                            <span>🗑️</span> Eliminar
+                        </a>
                     </div>
                 </div>
             </div>

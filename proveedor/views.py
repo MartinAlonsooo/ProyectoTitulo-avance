@@ -138,7 +138,7 @@ def logout_proveedor_view(request):
     
     messages.success(request, f'¡Hasta luego, {proveedor_nombre}! Sesión cerrada correctamente.')
     
-    return redirect('proveedores:directorio_proveedores')
+    return redirect('index')
 
 
 # ==================== VISTAS PÚBLICAS ====================
@@ -303,7 +303,7 @@ def editar_perfil_proveedor(request):
             try:
                 form.save()
                 messages.success(request, "Perfil actualizado exitosamente.")
-                return redirect('proveedores:editar_perfil_proveedor')
+                return redirect('proveedores:dashboard_proveedor')
             except Exception as e:
                 messages.error(request, f"Error al guardar: {e}")
         else:
@@ -411,20 +411,27 @@ def editar_producto(request, producto_id):
 
 
 @proveedor_login_required
-@require_POST
 def eliminar_producto(request, producto_id):
     """Eliminar producto/servicio"""
     proveedor = get_current_proveedor(request)
     producto = get_object_or_404(ProductoServicio, id=producto_id, proveedor=proveedor)
 
-    try:
-        nombre = producto.nombre
-        producto.delete()
-        messages.success(request, f'Producto "{nombre}" eliminado exitosamente.')
-    except Exception as e:
-        messages.error(request, f'Error al eliminar: {e}')
-
-    return redirect('proveedores:lista_productos')
+    if request.method == 'POST':
+        try:
+            nombre = producto.nombre
+            producto.delete()
+            messages.success(request, f'Producto "{nombre}" eliminado exitosamente.')
+            return redirect('proveedores:lista_productos')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar: {e}')
+            return redirect('proveedores:lista_productos')
+    
+    # Si es GET, mostrar página de confirmación
+    context = {
+        'producto': producto,
+        'proveedor': proveedor,
+    }
+    return render(request, 'proveedores/productos/eliminar.html', context)
 
 
 # ==================== GESTIÓN DE PROMOCIONES ====================
@@ -515,20 +522,27 @@ def editar_promocion(request, promocion_id):
 
 
 @proveedor_login_required
-@require_POST
 def eliminar_promocion(request, promocion_id):
     """Eliminar promoción"""
     proveedor = get_current_proveedor(request)
     promocion = get_object_or_404(Promocion, id=promocion_id, proveedor=proveedor)
 
-    try:
-        titulo = promocion.titulo
-        promocion.delete()
-        messages.success(request, f'Promoción "{titulo}" eliminada exitosamente.')
-    except Exception as e:
-        messages.error(request, f'Error al eliminar: {e}')
-
-    return redirect('proveedores:lista_promociones')
+    if request.method == 'POST':
+        try:
+            titulo = promocion.titulo
+            promocion.delete()
+            messages.success(request, f'Promoción "{titulo}" eliminada exitosamente.')
+            return redirect('proveedores:lista_promociones')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar: {e}')
+            return redirect('proveedores:lista_promociones')
+    
+    # Si es GET, mostrar página de confirmación
+    context = {
+        'promocion': promocion,
+        'proveedor': proveedor,
+    }
+    return render(request, 'proveedores/promociones/eliminar.html', context)
 
 
 # ==================== SOLICITUDES DE CONTACTO ====================

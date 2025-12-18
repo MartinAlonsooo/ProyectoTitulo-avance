@@ -1,10 +1,8 @@
-# administrador/views.py (CÓDIGO COMPLETO CORREGIDO)
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
 from usuarios.models import Comerciante, Beneficio, Post
-from usuarios import views as usuarios_views
+from usuarios.views import get_current_user
 
 from .forms import (
     ComercianteAdminForm,
@@ -12,17 +10,18 @@ from .forms import (
     PostAdminForm,
 )
 
-#-------------------------------------------
-# Verificar si es admin
-from usuarios.views import get_current_user
+# ======================================================
+# VERIFICAR SI EL USUARIO ES ADMINISTRADOR
+# ======================================================
 
 def require_admin(request):
     user = get_current_user(request)
-    return user and user.rol == 'ADMIN'
+    return user is not None and user.rol == 'ADMIN'
 
 
-
-# ========= COMERCIANTES =========
+# ======================================================
+# PANEL ADMINISTRADOR
+# ======================================================
 
 def panel_admin_view(request):
     if not require_admin(request):
@@ -38,9 +37,13 @@ def panel_admin_view(request):
     })
 
 
+# ======================================================
+# COMERCIANTES
+# ======================================================
 
 def crear_comerciante_view(request):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     if request.method == 'POST':
@@ -58,7 +61,8 @@ def crear_comerciante_view(request):
 
 
 def editar_comerciante_view(request, comerciante_id):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     comerciante = get_object_or_404(Comerciante, id=comerciante_id)
@@ -79,7 +83,8 @@ def editar_comerciante_view(request, comerciante_id):
 
 
 def eliminar_comerciante_view(request, comerciante_id):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     comerciante = get_object_or_404(Comerciante, id=comerciante_id)
@@ -94,13 +99,16 @@ def eliminar_comerciante_view(request, comerciante_id):
     })
 
 
-# ========= BENEFICIOS =========
+# ======================================================
+# BENEFICIOS
+# ======================================================
 
 def admin_beneficios_list(request):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
-    admin_user = usuarios_views.current_logged_in_user
+    admin_user = get_current_user(request)
     beneficios = Beneficio.objects.all().order_by('-fecha_creacion')
 
     return render(request, 'administrador/beneficios_list.html', {
@@ -110,7 +118,8 @@ def admin_beneficios_list(request):
 
 
 def crear_beneficio_view(request):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     if request.method == 'POST':
@@ -128,7 +137,8 @@ def crear_beneficio_view(request):
 
 
 def editar_beneficio_view(request, beneficio_id):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     beneficio = get_object_or_404(Beneficio, id=beneficio_id)
@@ -149,7 +159,8 @@ def editar_beneficio_view(request, beneficio_id):
 
 
 def eliminar_beneficio_view(request, beneficio_id):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     beneficio = get_object_or_404(Beneficio, id=beneficio_id)
@@ -164,13 +175,16 @@ def eliminar_beneficio_view(request, beneficio_id):
     })
 
 
-# ========= POSTS =========
+# ======================================================
+# POSTS
+# ======================================================
 
 def admin_posts_list(request):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
-    admin_user = usuarios_views.current_logged_in_user
+    admin_user = get_current_user(request)
     posts = Post.objects.select_related('comerciante').order_by('-fecha_publicacion')
 
     return render(request, 'administrador/posts_list.html', {
@@ -180,14 +194,17 @@ def admin_posts_list(request):
 
 
 def crear_post_admin_view(request):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
+
+    admin_user = get_current_user(request)
 
     if request.method == 'POST':
         form = PostAdminForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
-            post.comerciante = usuarios_views.current_logged_in_user
+            post.comerciante = admin_user
             post.save()
             messages.success(request, "Post creado correctamente.")
             return redirect('admin_posts')
@@ -200,11 +217,12 @@ def crear_post_admin_view(request):
 
 
 def editar_post_admin_view(request, post_id):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     post = get_object_or_404(Post, id=post_id)
-    admin_user = usuarios_views.current_logged_in_user
+    admin_user = get_current_user(request)
 
     if post.comerciante != admin_user:
         messages.error(request, "Solo puedes editar tus propias publicaciones.")
@@ -226,7 +244,8 @@ def editar_post_admin_view(request, post_id):
 
 
 def eliminar_post_admin_view(request, post_id):
-    if not require_admin():
+    if not require_admin(request):
+        messages.error(request, 'Acceso denegado.')
         return redirect('registro')
 
     post = get_object_or_404(Post, id=post_id)

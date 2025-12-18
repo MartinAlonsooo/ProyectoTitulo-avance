@@ -121,14 +121,31 @@
                 
                 <!-- Stats -->
                 <div class="flex-shrink-0 mx-auto lg:mx-0">
-                    <div class="bg-primary/5 rounded-xl border border-primary/20 px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-primary text-4xl">visibility</span>
-                            <div>
-                                <div class="text-3xl font-black text-primary">{{ proveedor.visitas|default:0 }}</div>
-                                <div class="text-xs text-gray-600 uppercase tracking-wide">Visitas</div>
+                    <div class="grid grid-cols-1 gap-3">
+                        <!-- Visitas -->
+                        <div class="bg-primary/5 rounded-xl border border-primary/20 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-4xl">visibility</span>
+                                <div>
+                                    <div class="text-3xl font-black text-primary">{{ proveedor.visitas|default:0 }}</div>
+                                    <div class="text-xs text-gray-600 uppercase tracking-wide">Visitas</div>
+                                </div>
                             </div>
                         </div>
+                        
+                        <!-- Última Conexión -->
+                        {% if proveedor.ultima_conexion %}
+                        <div class="bg-green-50 rounded-xl border border-green-200 px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-green-600 text-4xl">schedule</span>
+                                <div>
+                                    <div class="text-sm font-bold text-green-800">{{ proveedor.ultima_conexion|date:"d/m/Y" }}</div>
+                                    <div class="text-xs text-green-700">{{ proveedor.ultima_conexion|date:"H:i" }}</div>
+                                    <div class="text-xs text-gray-600 uppercase tracking-wide mt-1">Última conexión</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

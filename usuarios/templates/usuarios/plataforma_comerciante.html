@@ -9,6 +9,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     
     <script id="tailwind-config">
         tailwind.config = {
@@ -87,7 +88,9 @@
                         <a href="{% url 'directorio' %}" class="hover:text-primary transition-colors">Proveedores</a> 
                         <a href="{% url 'beneficios' %}" class="hover:text-primary transition-colors">Beneficios</a>
                         <a href="{% url 'redes_sociales' %}" class="hover:text-primary transition-colors">Redes Sociales</a>
-                        <a href="{% url 'crear_ticket_soporte' %}" class="btn btn-outline-danger"><i class="bi bi-life-preserver"></i> Solicitar soporte</a>
+                        <a href="{% url 'crear_ticket_soporte' %}" class="hover:text-primary transition-colors flex items-center gap-1">
+                            <i class="bi bi-life-preserver"></i> Solicitar soporte
+                        </a>
                     </nav>
                 </div>
                 <div class="flex justify-end gap-4 items-center">

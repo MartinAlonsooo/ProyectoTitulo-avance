@@ -31,8 +31,97 @@
             },
         }
     </script>
+    
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .animate-slide-out {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+    </style>
 </head>
 <body class="bg-white dark:bg-background-dark font-display">
+    
+    <!-- ==================== MENSAJES FLASH ==================== -->
+    {% if messages %}
+    <div class="fixed top-24 right-6 z-50 space-y-3 max-w-md">
+        {% for message in messages %}
+        <div class="bg-white border-l-4 {% if message.tags == 'success' %}border-green-500{% elif message.tags == 'error' %}border-red-500{% elif message.tags == 'warning' %}border-yellow-500{% else %}border-blue-500{% endif %} rounded-lg shadow-2xl p-4 animate-slide-in message-alert">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0">
+                    {% if message.tags == 'success' %}
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-green-600 text-xl">check_circle</span>
+                    </div>
+                    {% elif message.tags == 'error' %}
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-600 text-xl">error</span>
+                    </div>
+                    {% elif message.tags == 'warning' %}
+                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-yellow-600 text-xl">warning</span>
+                    </div>
+                    {% else %}
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-600 text-xl">info</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <p class="text-gray-900 font-semibold text-sm leading-relaxed">
+                        {{ message }}
+                    </p>
+                </div>
+                <button onclick="dismissMessage(this)" class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <script>
+        // Función para cerrar mensaje individual
+        function dismissMessage(button) {
+            const messageDiv = button.closest('.message-alert');
+            messageDiv.classList.add('animate-slide-out');
+            setTimeout(() => messageDiv.remove(), 300);
+        }
+        
+        // Auto-ocultar mensajes después de 6 segundos
+        setTimeout(() => {
+            document.querySelectorAll('.message-alert').forEach(el => {
+                el.classList.add('animate-slide-out');
+                setTimeout(() => el.remove(), 300);
+            });
+        }, 6000);
+    </script>
+    {% endif %}
+    
     <!-- Header -->
     <header class="bg-white dark:bg-background-dark border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,8 +146,8 @@
                     </a>
                     <a href="#beneficios" class="text-text-light dark:text-text-dark hover:text-primary transition-colors font-medium">
                         Beneficios
-                    </a>
-                    <a href="#contacto" class="text-text-light dark:text-text-dark hover:text-primary transition-colors font-medium">
+                    </a>   
+                    <a href="{% url 'contactos_clubalmacen' %}" class="text-text-light dark:text-text-dark hover:text-primary transition-colors font-medium">
                         Contacto
                     </a>
                 </div>

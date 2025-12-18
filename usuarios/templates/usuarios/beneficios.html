@@ -5,11 +5,12 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Beneficios - ClubAlmacen</title>
+    <title>Beneficios - Club Almacén</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     
     <script id="tailwind-config">
         tailwind.config = {
@@ -36,45 +37,47 @@
     </script>
 
     <style>
-        /* ELIMINADO: Estilos de barra de progreso */
-        
-        /* Estilos para iconos de placeholder */
         .placeholder-icon-benefit {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
             height: 100%;
-            font-size: 4rem; /* Icono grande */
-            color: rgba(0, 90, 156, 0.7); /* Color primario con opacidad */
+            font-size: 4rem;
+            color: rgba(0, 90, 156, 0.7);
         }
-        /* Colores de fondo para placeholders por categoría */
-        .bg-placeholder-CAPACITACION { background-color: #E6F3FF; } /* Azul claro */
-        .bg-placeholder-DESCUENTO { background-color: #FFF8E6; } /* Amarillo claro */
-        .bg-placeholder-SORTEO { background-color: #E6FFE6; } /* Verde claro */
-        .bg-placeholder-EVENTO { background-color: #FFEEEC; } /* Rojo/naranja claro */
-        .bg-placeholder-OTROS { background-color: #F8F8F8; } /* Gris muy claro */
+        .bg-placeholder-CAPACITACION { background-color: #E6F3FF; }
+        .bg-placeholder-DESCUENTO { background-color: #FFF8E6; }
+        .bg-placeholder-SORTEO { background-color: #E6FFE6; }
+        .bg-placeholder-EVENTO { background-color: #FFEEEC; }
+        .bg-placeholder-OTROS { background-color: #F8F8F8; }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display">
     <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
         <div class="layout-container flex h-full grow flex-col">
             
-            <header class="flex items-center justify-between whitespace-nowrap bg-white dark:bg-background-dark border-b border-solid border-gray-200 dark:border-gray-700 px-10 py-3 shadow-sm sticky top-0 z-50">
+            <!-- HEADER -->
+            <header class="flex items-center justify-between whitespace-nowrap bg-white dark:bg-background-dark border-b border-solid border-gray-200 dark:border-gray-700 px-10 py-3 shadow-md sticky top-0 z-50">
                 <div class="flex items-center gap-8">
                     <div class="flex items-center gap-3">
                         <img src="{% static 'img/logoClubAlmacen.png' %}" alt="Logo de la Plataforma" class="h-24 w-auto"/>
                     </div>
                     <nav class="hidden md:flex gap-6 text-text-muted-light dark:text-text-muted-dark font-semibold text-sm">
-                        <a href="{% url 'plataforma_comerciante' %}" class="text-primary transition-colors">Plataforma</a>
+                        <a href="{% url 'plataforma_comerciante' %}" class="hover:text-primary transition-colors">Plataforma</a>
                         <a href="{% url 'directorio' %}" class="hover:text-primary transition-colors">Proveedores</a> 
-                        <a href="{% url 'beneficios' %}" class="hover:text-primary transition-colors">Beneficios</a>
+                        <a href="{% url 'beneficios' %}" class="text-primary transition-colors">Beneficios</a>
                         <a href="{% url 'redes_sociales' %}" class="hover:text-primary transition-colors">Redes Sociales</a>
-
+                        <a href="{% url 'crear_ticket_soporte' %}" class="hover:text-primary transition-colors flex items-center gap-1">
+                            <i class="bi bi-life-preserver"></i> Solicitar soporte
+                        </a>
                     </nav>
                 </div>
                 <div class="flex justify-end gap-4 items-center">
-                    {# ELIMINADO: Display de puntos en el header #}
+                    <button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-transparent text-text-muted-light dark:text-text-muted-dark hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <span class="material-symbols-outlined text-2xl">notifications</span>
+                    </button>
+                    
                     <a href="{% url 'perfil' %}" class="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" 
                             data-alt="Foto de {{ comerciante.nombre_apellido }}" 
@@ -89,14 +92,13 @@
                 </div>
             </header>
             
+            <!-- MAIN CONTENT -->
             <main class="flex-1 w-full max-w-screen-xl mx-auto p-6 lg:p-8">
                 
                 <h1 class="text-3xl font-bold text-text-light dark:text-text-dark mb-2">Catálogo de Beneficios Exclusivos</h1>
                 <p class="text-text-muted-light dark:text-text-muted-dark text-lg mb-8">
                     Descuentos, sorteos y acceso a capacitación para potenciar tu negocio.
                 </p>
-
-                {# ELIMINADO: Contenedor completo de estatus y progreso de puntos/niveles #}
                 
                 <h2 class="text-2xl font-bold text-text-light dark:text-text-dark mt-10 mb-6">Todos los Beneficios</h2>
                 
@@ -117,7 +119,6 @@
                             class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-text-muted-light focus:ring-primary focus:border-primary">
                         <option value="-fecha_creacion" {% if current_sort == '-fecha_creacion' %}selected{% endif %}>Ordenar por: Más Nuevos</option>
                         <option value="vence" {% if current_sort == 'vence' %}selected{% endif %}>Ordenar por: Vencimiento Próximo</option>
-                        {# ELIMINADO: Opciones de ordenar por puntos #}
                     </select>
                 </form>
                 
@@ -133,7 +134,7 @@
                         {% for beneficio in beneficios %}
                         <div class="bg-white dark:bg-white rounded-xl shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1">
                             
-                            <div class="relative h-40"> {# Altura fija para la imagen/placeholder #}
+                            <div class="relative h-40">
                                 {% if beneficio.foto %}
                                     <img src="{{ beneficio.foto.url }}" alt="Imagen del beneficio: {{ beneficio.titulo }}" class="w-full h-full object-cover">
                                 {% else %}
@@ -147,7 +148,6 @@
                                 <span class="absolute top-0 left-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-br-lg uppercase">
                                     {{ beneficio.get_categoria_display }}
                                 </span>
-                                {# ELIMINADO: Display de puntos requeridos #}
                             </div>
                             
                             <div class="p-4 flex-1 flex flex-col">
@@ -185,7 +185,7 @@
         
         <footer class="text-center text-xs text-text-muted-light border-t border-gray-200 py-4 mt-10">
             <p>Soporte | Preguntas Frecuentes | Términos de Servicio</p>
-            <p class="mt-1">© 2025 Plataforma de Comerciantes. Todos los derechos reservados.</p>
+            <p class="mt-1">© 2025 Club Almacén. Todos los derechos reservados.</p>
         </footer>
     </div>
 </body>
